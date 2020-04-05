@@ -13,14 +13,13 @@ output:
     keep_md: true
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, scipen=999)
-```
+
 
 ### Require dependencies
 
 Loads all required dependencies to run analysis
-```{r Load Dependencies, message=FALSE, warning=FALSE}
+
+```r
 library(data.table)
 library(dplyr)
 library(ggplot2)
@@ -30,8 +29,8 @@ library(ggplot2)
 
 Checks if data directory exists. If not, creates directory
 
-```{r Check Directory, results = 'hide'}
 
+```r
 if(!file.exists('./99_data')){
         dir.create('./99_data')
 }
@@ -40,7 +39,8 @@ if(!file.exists('./99_data')){
 Checks if activity data exists in file. If not, downloads file and extracts data.
 If file was downloaded, deletes the .zip file.
 
-```{r Check Data, results = 'hide'}
+
+```r
 if(!file.exists('./99_data/activity.csv')){
         url <- 'https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip'
         download.file(url, destfile = './99_data/data.zip')
@@ -50,7 +50,8 @@ if(!file.exists('./99_data/activity.csv')){
 ```
 
 Reads data into a data table called 'raw_data'
-```{r Read Data, results = 'hide'}
+
+```r
 raw_data <- as.data.table( 
                 read.csv(
                         './99_data/activity.csv',
@@ -62,14 +63,24 @@ raw_data <- as.data.table(
 ```
 
 Adjust column classes and remove NAs and store result in 'data'
-```{r Format Data, results = 'hide'}
+
+```r
 data <- na.omit(raw_data)
 data$date <- as.Date(data$date)
 ```
 
 Gets structure of data table 'data'
-```{r Summary Data}
+
+```r
 str(data)
+```
+
+```
+## Classes 'data.table' and 'data.frame':	15264 obs. of  3 variables:
+##  $ steps   : int  0 0 0 0 0 0 0 0 0 0 ...
+##  $ date    : Date, format: "2012-10-02" "2012-10-02" ...
+##  $ interval: int  0 5 10 15 20 25 30 35 40 45 ...
+##  - attr(*, ".internal.selfref")=<externalptr>
 ```
 
 ### 2. Histogram of Steps per day
@@ -77,17 +88,18 @@ str(data)
 Summarize data into days and sum up steps per day
 Store data in new Variable 'stepsPerDay'
 
-```{r Summarize Steps per Day}
+
+```r
 stepsPerDay <- data %>%
         group_by(date) %>%
         summarize(totalStepCount = sum(steps))
-                
 ```
 
 Plots data of 'stepsPerDay' in histogram
 Set y-axis limits and titles
 
-```{r Plot Steps per Day}
+
+```r
 qplot(
         x = stepsPerDay$totalStepCount,
         geom = "histogram",
@@ -99,36 +111,41 @@ qplot(
 )
 ```
 
+![](PA1_template_files/figure-html/Plot Steps per Day-1.png)<!-- -->
+
 ### 3. Mean and median number of steps taken each day
 
 Calculate average number of steps and store in new variable 'meanSteps'
 
-```{r Mean Steps}
+
+```r
 meanSteps <- mean(stepsPerDay$totalStepCount)
 ```
 
 Calculate median number of steps and store in new variable 'medianSteps'
 
-```{r Median Steps}
+
+```r
 medianSteps <- median(stepsPerDay$totalStepCount)
 ```
 
-The mean number of steps is **`r format(round(meanSteps), scientific = FALSE)`** and the median is **`r format(medianSteps, scientific = FALSE)`**
+The mean number of steps is **10766** and the median is **10765**
 
 ### 4. Time Series Plot of the Average Number of Steps Taken
 Summarize data into 5-minute intervals and calculate average
 Store data in new Variable 'intervalAverage'
 
-```{r Average Steps per Interval}
+
+```r
 intervalAverage <- data %>%
         group_by(interval) %>%
         summarize(averageStepCount = mean(steps))
-                
 ```
 
 Plot graph of average steps in each 5-minute interval
 Set titles
-```{r Plot Steps per Interval}
+
+```r
 qplot(
         x = intervalAverage$interval,
         y = intervalAverage$averageStepCount,
@@ -140,31 +157,36 @@ qplot(
 )
 ```
 
+![](PA1_template_files/figure-html/Plot Steps per Interval-1.png)<!-- -->
+
 ### The 5-minute interval that, on average, contains the maximum number of steps
 
 Filter 'intervalAverage' to return max averageStepCount and store in variable 'maxSteps'
 
-```{r Most Steps per Interval}
+
+```r
 maxSteps <- filter(
         intervalAverage,
         averageStepCount == max(averageStepCount)
         )
 ```
 
-The interval with the most steps on average is interval **`r format(maxSteps$interval, scientific = FALSE)`**
+The interval with the most steps on average is interval **835**
 
 
 ### 6A. Code to describe and show a strategy for imputing missing data
 
 Calculate the tital number of missing values in the original data set
-```{r Sum Missing Values}
+
+```r
 totalMissing <- sum(is.na(raw_data$steps))
 ```
-There are **`r format(totalMissing, scientific = FALSE)`** missing values in the original data set
+There are **2304** missing values in the original data set
 
 Missing values during a specific interval will be imputed by using the average step count for that interval
 
-```{r Imputing Missing Value}
+
+```r
 full_data <- raw_data
 for (i in 1:nrow(full_data)){
         if (is.na(full_data$steps[i])){
@@ -176,12 +198,18 @@ for (i in 1:nrow(full_data)){
 
 Check that all NAs have been removed
 
-```{r Check for NAs}
+
+```r
         sum(is.na(full_data$steps)) == 0
 ```
 
+```
+## [1] TRUE
+```
+
 Make sure to coerce dates into dates
-```{r Coerce Dates}
+
+```r
 full_data$date <- as.Date(full_data$date)
 ```
 
@@ -190,17 +218,18 @@ full_data$date <- as.Date(full_data$date)
 Summarize data into days and sum up steps per day
 Store data in new Variable 'stepsPerDayFull'
 
-```{r Summarize Steps per Day Imputed}
+
+```r
 stepsPerDayFull <- full_data %>%
         group_by(date) %>%
         summarize(totalStepCount = sum(steps))
-                
 ```
 
 Plots data of 'stepsPerDayFull' in histogram
 Set y-axis limits and titles
 
-```{r Plot Steps per Day Imputed}
+
+```r
 qplot(
         x = stepsPerDayFull$totalStepCount,
         geom = "histogram",
@@ -212,47 +241,55 @@ qplot(
 )
 ```
 
+![](PA1_template_files/figure-html/Plot Steps per Day Imputed-1.png)<!-- -->
+
 ### 7A. Mean and median number of steps taken each day (including imputed values)
 
 Calculate average number of steps and store in new variable 'meanStepsFull'
 
-```{r Mean Steps Imputed}
+
+```r
 meanStepsFull <- mean(stepsPerDayFull$totalStepCount)
 ```
 
 Calculate median number of steps and store in new variable 'medianStepsFull'
 
-```{r Median Steps Imputed}
+
+```r
 medianStepsFull <- median(stepsPerDayFull$totalStepCount)
 ```
 
-The mean number of steps is **`r format(round(meanStepsFull), scientific = FALSE)`** and the median is **`r format(round(medianStepsFull), scientific = FALSE)`**
+The mean number of steps is **10766** and the median is **10766**
 
 ### 8. Panel plot comparing the average number of steps taken per 5-minute interval across weekdays and weekends
 
 Add weekDay identifier to 'full_data'
 
-```{r Add WeekDay}
+
+```r
 full_data$weekDay <- weekdays(full_data$date)
 ```
 
 Add boolean value to identify weekend and store in 'isWeekend' column
 
-```{r Add Boolean}
+
+```r
 full_data$isWeekend <- FALSE
 full_data$isWeekend[full_data$weekDay %in% c('Saturday', 'Sunday')] <- TRUE
 ```
 
 Summarize data by weekend and interval values and calculate average steps
 
-```{r Average Weekend Steps}
+
+```r
 intervalAverageDay <- full_data %>%
         group_by(interval, isWeekend) %>%
         summarize(averageStepCount = mean (steps))
 ```
 
 Make a plot comparing weekdays to weekends and store in variable 'p'
-```{r Plot Averages by Day Type, warning= FALSE}
+
+```r
 p <- qplot(interval, averageStepCount, data = intervalAverageDay,
       type = 'line',
       geom = 'line',
@@ -264,7 +301,8 @@ p <- qplot(interval, averageStepCount, data = intervalAverageDay,
 
 Add facets and facet labels, using ggplot2
 
-```{r Add FAcets and labels}
+
+```r
 weekendLabel <- c('Weekday', 'Weekend')
 names(weekendLabel) <- c(FALSE, TRUE)
 
@@ -272,3 +310,5 @@ p + facet_grid(
         facets = isWeekend ~ .,
         labeller = labeller(isWeekend = weekendLabel))
 ```
+
+![](PA1_template_files/figure-html/Add FAcets and labels-1.png)<!-- -->
