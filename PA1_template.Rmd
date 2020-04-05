@@ -8,10 +8,11 @@ site: 'https://www.coursera.org'
 track: 'Data Science'
 course: 'Reproducible Research'
 week: 'Week 2'
-output: 
-  html_document:
+output:
   md_document:
-      variant: markdown_github
+    variant: markdown_github
+  html_document:
+    keep_md: no
 ---
 
 ```{r setup, include=FALSE}
