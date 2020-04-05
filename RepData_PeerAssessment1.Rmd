@@ -1,0 +1,40 @@
+---
+title: "RepData_PeerAssessment1 - G9A2HvK9 Fork"
+author: "Hendrik Geiger"
+date: "4/5/2020"
+institution: 'Johns Hopkins University'
+method: 'Online'
+site: 'https://www.coursera.org'
+track: 'Data Science'
+course: 'Reproducible Research'
+week: 'Week 2'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Reading the Data
+
+Checks if data directory exists. If not, creates directory
+
+```{r Check Directory, results = 'hide'}
+
+if(!file.exists('./99_data')){
+        dir.create('./99_data')
+}
+```
+
+Checks if activity data exists in file. If not, downloads file and extracts data.
+If file was downloaded, deletes the .zip file.
+
+```{r Check Data, results = 'hide'}
+if(!file.exists('./99_data/activity.csv')){
+        url <- 'https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip'
+        download.file(url, destfile = './99_data/data.zip')
+        unzip('./99_data/data.zip', exdir = './99_data', overwrite = TRUE)
+        file.remove('./99_data/data.zip')
+}
+```
+
